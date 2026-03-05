@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信点菜表单</title>
+    <!-- 引入TailwindCSS简化样式 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入图标库 -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        /* 自定义适配微信的样式 */
+        body {
+            background-color: #f5f5f5;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        .dish-card {
+            transition: background-color 0.2s;
+        }
+        .dish-card:active {
+            background-color: #f0f0f0;
+        }
+        /* 菜品图片样式，保持比例 */
+        .dish-img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="py-4 px-3">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-4 mb-4">
+        <h1 class="text-xl font-bold text-center text-gray-800 mb-4">🍽️ 在线点菜</h1>
+        
+        <!-- 点菜表单 -->
+        <form id="orderForm" class="space-y-4">
+            <!-- 菜品选择（带图片+勾选） -->
+            <div class="border-b pb-2">
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">🥢 菜品选择</h2>
+                
+                <!-- 菜品列表 -->
+                <div class="space-y-3">
+                    <!-- 菜品1：鱼香肉丝 -->
+                    <div class="dish-card bg-gray-50 p-3 rounded-md flex items-center gap-3">
+                        <!-- 菜品图片 -->
+                        <img src="https://picsum.photos/seed/yuxiangrousi/200/150" alt="鱼香肉丝" class="dish-img">
+                        <!-- 菜品名称 -->
+                        <span class="font-medium flex-1">鱼香肉丝</span>
+                        <!-- 勾选框 -->
+                        <input type="checkbox" name="dish_1" value="鱼香肉丝" class="w-5 h-5 accent-green-600">
+                    </div>
+
+                    <!-- 菜品2：宫保鸡丁 -->
+                    <div class="dish-card bg-gray-50 p-3 rounded-md flex items-center gap-3">
+                        <img src="https://picsum.photos/seed/gongbaojiding/200/150" alt="宫保鸡丁" class="dish-img">
+                        <span class="font-medium flex-1">宫保鸡丁</span>
+                        <input type="checkbox" name="dish_2" value="宫保鸡丁" class="w-5 h-5 accent-green-600">
+                    </div>
+
+                    <!-- 菜品3：麻婆豆腐 -->
+                    <div class="dish-card bg-gray-50 p-3 rounded-md flex items-center gap-3">
+                        <img src="https://picsum.photos/seed/mapotofu/200/150" alt="麻婆豆腐" class="dish-img">
+                        <span class="font-medium flex-1">麻婆豆腐</span>
+                        <input type="checkbox" name="dish_2" value="麻婆豆腐" class="w-5 h-5 accent-green-600">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 备注 -->
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">📝 备注（忌口/要求）</label>
+                <textarea id="remark" rows="2"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"></textarea>
+            </div>
+
+            <!-- 提交按钮 -->
+            <button type="submit" 
+                class="w-full bg-green-600 text-white py-2 rounded-md font-medium hover:bg-green-700 active:bg-green-800">
+                提交订单 <i class="fa fa-paper-plane-o"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- 提交成功提示（默认隐藏） -->
+    <div id="successAlert" class="max-w-md mx-auto bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg shadow-md text-center hidden">
+        <i class="fa fa-check-circle text-2xl mb-2"></i>
+        <p>✅ 订单提交成功！</p>
+        <p class="text-sm mt-1">我们会尽快确认菜品~</p>
+    </div>
+
+    <script>
+        // 表单提交逻辑
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 1. 收集勾选的菜品
+            const selectedDishes = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedDishes.push(checkbox.value);
+            });
+
+            // 2. 收集表单数据
+            const formData = {
+                selected_dishes: selectedDishes.join('、'), // 用顿号分隔勾选的菜品
+                remark: document.getElementById('remark').value,
+                submit_time: new Date().toLocaleString() // 提交时间
+            };
+
+            // 3. 验证（至少勾选1个菜品）
+            if (selectedDishes.length === 0) {
+                alert('请至少选择一道菜品~');
+                return;
+            }
+
+            try {
+                // 4. 提交到SheetDB（替换成你的API地址）
+                const response = await fetch('https://sheetdb.io/api/v1/你的sheetdb标识符', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data: formData })
+                });
+x
+                if (response.ok) {
+                    // 5. 提交成功，显示提示
+                    document.getElementById('orderForm').classList.add('hidden');
+                    document.getElementById('successAlert').classList.remove('hidden');
+                } else {
+                    alert('提交失败，请重试~');
+                }
+            } catch (error) {
+                console.error('提交错误：', error);
+                alert('网络异常，请稍后再试~');
+            }
+        });
+    </script>
+</body>
+</html>
